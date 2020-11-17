@@ -1,0 +1,35 @@
+#!/bin/bash
+
+## Taking out the server ip from config file ##
+source config.properties
+
+## get the process group id from NiFi##
+groupid=$(curl -s http://$baseUrl/nifi-api/flow/process-groups/root/status?recursive=true | grep -Po '"id":.*?[^\\]",' |awk -F" " '!_[$1]'| sed -e 's/\(^.*:"\)\(.*\)\(",.*$\)/\2/' | head -1)
+
+echo $groupid
+## Changing the template according to config file and changed groupId value###
+java -jar Axml_parser.jar config.properties flow.xml $groupid
+
+## Uploading the template to nifi ###
+curl -iv -F template=@flow.xml -X POST  http://$baseUrl/nifi-api/process-groups/$groupid/templates/upload
+
+
+## Importing the template to Nifi ###
+## getting the Template id for newly uploaded template ##
+template=$(curl -s http://$baseUrl/nifi-api/flow/templates | grep -Po '"id":.*?[^\\]",' |awk -F" " '!_[$1]++' | sed -e 's/\(^.*:"\)\(.*\)\(",.*$\)/\2/')
+
+## Import the template now ##
+curl -i -X POST -H 'Content-Type:application/json' -d '{"originX": 2.0,"originY": 3.0,"templateId": "'"$template"'"}' http://$baseUrl/nifi-api/process-groups/$groupid/template-instance
+
+## Running the template ##
+curl http://$baseUrl/nifi-api/flow/process-groups/$groupid -X PUT -H 'Accept-Encoding: gzip, deflate, sdch, br' -H 'Content-Type: application/json' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'Referer: http://$baseUrl/nifi/' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --data-binary '{"id":"'"$groupid"'","state":"RUNNING"}' --compressed
+
+
+
+## Running Spark job which dumps the data into Hbase ##
+sudo su hdfs -c "export SPARK_MAJOR_VERSION=2 && spark-submit --master yarn --deploy-mode cluster --jars spark-streaming-kafka-0-8-assembly_2.11-2.3.1.jar --packages com.hortonworks:shc-core:1.1.0-2.1-s_2.11 --repositories http://repo.hortonworks.com/content/groups/public/ --files /usr/hdp/current/hbase-master/conf/hbase-site.xml ML_RestService_hbase.py $kafkaUrl $topic $KNNModelUrl"
+
+
+user=admin
+pass=CodexIfabric@123
+baseurl=dj.codex-ifabric.net

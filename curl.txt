@@ -1,0 +1,14 @@
+/gateway/platform/nifi-app/nifi-api.
+curl -i -k -u admin:CodexIfabric@123 -s https://do.codex-ifabric.net/gateway/platform/nifi-app/nifi-api//flow/process-groups/root/status?recursive=true | grep -Po '"id":.*?[^\\]",' |awk -F" " '!_[$1]'| sed -e 's/\(^.*:"\)\(.*\)\(",.*$\)/\2/' | head -1
+
+
+curl -i -k -u admin:CodexIfabric@123 -s https://do.codex-ifabric.net/gateway/platform/nifi-app/nifi-api//flow/process-groups/root/status?recursive=true | grep -Po '"id":.*?[^\\]",' |awk -F" " '!_[$1]'| sed -e 's/\(^.*:"\)\(.*\)\(",.*$\)/\2/' | head -1)
+
+
+
+curl -i -k -u admin:CodexIfabric@123 -s https://do.codex-ifabric.net/gateway/platform/nifi-app/nifi-api//flow/process-groups/root/status?recursive=true | grep -Po '"id":.*?[^\\]",' |awk -F" " '!_[$1]'| sed -e 's/\(^.*:"\)\(.*\)\(",.*$\)/\2/' | head -1
+
+
+
+
+curl -i -k -u $user:$pass -s https://do.codex-ifabric.net/gateway/platform/nifi-app/nifi-api/flow/process-groups/root/status?recursive=true | grep -Po '"id":.*?[^\\]",' |awk -F" " '!_[$1]'| sed -e 's/\(^.*:"\)\(.*\)\(",.*$\)/\2/' | head -1
